@@ -17,16 +17,16 @@ import top.preacer.util.FileUtils;
 import top.preacer.util.SQLHandle;
 @Service
 public class SQLServiceImpl implements SQLService{
-    private static final Pattern PATTERN_INSERT = Pattern.compile("insert\\s+into\\s+(\\w+)(\\(((\\w+,?)+)\\))?\\s+\\w+\\((([^\\)]+,?)+)\\);?");
-    private static final Pattern PATTERN_CREATE_TABLE = Pattern.compile("create\\stable\\s(\\w+)\\s?\\(((?:\\s?\\w+\\s\\w+,?)+)\\)\\s?;");
-    private static final Pattern PATTERN_ALTER_TABLE_ADD = Pattern.compile("alter\\stable\\s(\\w+)\\sadd\\s(\\w+\\s\\w+)\\s?;");
-    private static final Pattern PATTERN_DELETE = Pattern.compile("delete\\sfrom\\s(\\w+)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;");
-    private static final Pattern PATTERN_UPDATE = Pattern.compile("update\\s(\\w+)\\sset\\s(\\w+\\s?=\\s?[^,\\s]+(?:\\s?,\\s?\\w+\\s?=\\s?[^,\\s]+)*)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;");
-    private static final Pattern PATTERN_DROP_TABLE = Pattern.compile("drop\\stable\\s(\\w+);");
-    private static final Pattern PATTERN_SELECT = Pattern.compile("select\\s(\\*|(?:(?:\\w+(?:\\.\\w+)?)+(?:\\s?,\\s?\\w+(?:\\.\\w+)?)*))\\sfrom\\s(\\w+(?:\\s?,\\s?\\w+)*)(?:\\swhere\\s([^\\;]+\\s?;))?");
-    private static final Pattern PATTERN_DELETE_INDEX = Pattern.compile("delete\\sindex\\s(\\w+)\\s?;");
-    private static final Pattern PATTERN_GRANT_ADMIN = Pattern.compile("grant\\sadmin\\sto\\s([^;\\s]+)\\s?;");
-    private static final Pattern PATTERN_REVOKE_ADMIN = Pattern.compile("revoke\\sadmin\\sfrom\\s([^;\\s]+)\\s?;");
+	 private static final Pattern PATTERN_INSERT = Pattern.compile("insert\\s+into\\s+(\\w+)(\\(((\\w+,?)+)\\))?\\s+\\w+\\((([^\\)]+,?)+)\\);?");
+	 private static final Pattern PATTERN_CREATE_TABLE = Pattern.compile("create\\stable\\s(\\w+)\\s?\\(((?:\\s?\\w+\\s\\w+,?)+)\\)\\s?;?");
+	 private static final Pattern PATTERN_ALTER_TABLE_ADD = Pattern.compile("alter\\stable\\s(\\w+)\\sadd\\s(\\w+\\s\\w+)\\s?;?");
+	 private static final Pattern PATTERN_DELETE = Pattern.compile("delete\\sfrom\\s(\\w+)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;?");
+	 private static final Pattern PATTERN_UPDATE = Pattern.compile("update\\s(\\w+)\\sset\\s(\\w+\\s?=\\s?[^,\\s]+(?:\\s?,\\s?\\w+\\s?=\\s?[^,\\s]+)*)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;?");
+	 private static final Pattern PATTERN_DROP_TABLE = Pattern.compile("drop\\stable\\s(\\w+);?");
+	 private static final Pattern PATTERN_SELECT = Pattern.compile("select\\s(\\*|(?:(?:\\w+(?:\\.\\w+)?)+(?:\\s?,\\s?\\w+(?:\\.\\w+)?)*))\\sfrom\\s(\\w+(?:\\s?,\\s?\\w+)*)(?:\\swhere\\s([^\\;]+\\s?;))?");
+	 private static final Pattern PATTERN_DELETE_INDEX = Pattern.compile("delete\\sindex\\s(\\w+)\\s?;?");
+	 private static final Pattern PATTERN_GRANT_ADMIN = Pattern.compile("grant\\sadmin\\sto\\s([^;\\s]+)\\s?;?");
+	 private static final Pattern PATTERN_REVOKE_ADMIN = Pattern.compile("revoke\\sadmin\\sfrom\\s([^;\\s]+)\\s?;?");
 
 	@Override
 	public Table doSelect(String sql) {
@@ -64,11 +64,12 @@ public class SQLServiceImpl implements SQLService{
 		Matcher matcherUpdate = PATTERN_UPDATE.matcher(sql);
 		Matcher matcherCreateTable = PATTERN_CREATE_TABLE.matcher(sql);
 		Matcher matcherAlterTable_add = PATTERN_ALTER_TABLE_ADD.matcher(sql);
+
+		
 		//执行修改表的操作
 		while (matcherAlterTable_add.find()) {
             if (user.getLevel() != User.ADMIN) {
-            	result.setMsg("权限不足");
-            	result.setStatus(Result.FAILED);
+            	result.lackOfAuthority();
             }
             String get=Operating.alterTableAdd(matcherAlterTable_add);
             if(get.contains("未找到表")) {
@@ -78,17 +79,16 @@ public class SQLServiceImpl implements SQLService{
             	result.setMsg(get);
             	result.setStatus(Result.FAILED);
             }else if(get.contains("success")) {
-            	result.setMsg("OK");
-            	result.setStatus(Result.SUCCESS);
+            	result.wellDone();
             }
             result.setSpendTime((System.currentTimeMillis()-startMili)/10.0);
             return result;
         }
+		
 		//执行创建表的操作
 		while (matcherCreateTable.find()) {
             if (user.getLevel() != User.ADMIN) {
-            	result.setMsg("权限不足");
-            	result.setStatus(Result.FAILED);
+            	result.lackOfAuthority();
             }else{
             	String get=Operating.createTable(matcherCreateTable);
             	
@@ -96,8 +96,7 @@ public class SQLServiceImpl implements SQLService{
                 	result.setMsg(get);
                 	result.setStatus(Result.FAILED);
                 }else if(get.contains("success")) {
-                	result.setMsg("OK");
-                	result.setStatus(Result.SUCCESS);
+                	result.wellDone();
                 }
             }
             result.setSpendTime((System.currentTimeMillis()-startMili)/10.0);
@@ -106,41 +105,82 @@ public class SQLServiceImpl implements SQLService{
 		//执行删除表的操作
 		while (matcherDropTable.find()) {
 			 if (user.getLevel() != User.ADMIN) {
-	            	result.setMsg("权限不足");
-	            	result.setStatus(Result.FAILED);
+				 result.lackOfAuthority();
 	          }else{
 	            	String get=Operating.dropTable(matcherDropTable);
 	            	if(get.contains("不存在表")) {
 	                	result.setMsg(get);
 	                	result.setStatus(Result.FAILED);
 	                }else if(get.contains("success")) {
-	                	result.setMsg("OK");
-	                	result.setStatus(Result.SUCCESS);
+	                	result.wellDone();
 	                }
 	           }
 			 result.setSpendTime((System.currentTimeMillis()-startMili)/10.0);
 	         return result;    
         }
-		//执行插入表的操作
-		while (matcherInsert.find()) {
-			 if (user.getLevel() != User.ADMIN||!user.isCanInsert()) {
-				result.setMsg("权限不足");
-	            result.setStatus(Result.FAILED);
+		System.out.println(sql);
+//		System.out.println(matcherInsert.find());
+//		//执行插入表的操作
+//		System.out.println(matcherInsert.find());
+		if (matcherInsert.find()) {
+			System.out.println("aa");
+			 if (user.getLevel() != User.ADMIN&&!user.isCanInsert()) {
+
+				 result.lackOfAuthority();
 			 }else {
 				 String get=Operating.insert(matcherInsert);
+				 System.out.println(get);
+				 if(get.contains("success")) {
+					 result.wellDone();
+				 }else {
+					result.setMsg(get);
+	                result.setStatus(Result.FAILED);
+				 }
 			 }
 		 }
+		//执行更新表的操作
 		 while (matcherUpdate.find()) {
-			 if (user.getLevel() != User.ADMIN||!user.isCanUpdate()) {
-				result.setMsg("权限不足");
-	            result.setStatus(Result.FAILED);
+			 if (user.getLevel() != User.ADMIN&&!user.isCanUpdate()) {
+				 result.lackOfAuthority();
 			 }else {
-				
+				 String get=Operating.update(matcherUpdate);
+				 if(get.contains("success")) {
+					 result.wellDone();
+					}else {
+						result.setMsg(get);
+		                result.setStatus(Result.FAILED);
+					 }
 			 }
 		 }
-		
-		result.setMsg("存在语法错误");
-        result.setStatus(Result.FAILED);
+		 while (matcherDelete.find()) {
+             if (user.getLevel() != User.ADMIN&&!user.isCanDelete()) {
+            	 result.lackOfAuthority();
+             }else {
+				 String get=Operating.delete(matcherDelete);;
+				 if(get.contains("success")) {
+					 result.wellDone();
+				 }else {
+					result.setMsg(get);
+	                result.setStatus(Result.FAILED);
+				 }
+			 }
+             
+         }
+		 while (matcherDeleteIndex.find()) {
+             if (user.getLevel() != User.ADMIN) {
+            	 result.lackOfAuthority();
+             }else {
+            	 String get=Operating.deleteIndex(matcherDeleteIndex);
+				 if(get.contains("success")) {
+					 result.wellDone();
+				 }else {
+					result.setMsg(get);
+	                result.setStatus(Result.FAILED);
+				 }
+			 }
+             
+         }
+
 		return result;
 	}
 

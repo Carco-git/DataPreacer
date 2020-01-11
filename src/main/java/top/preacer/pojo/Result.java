@@ -30,4 +30,12 @@ public class Result implements Serializable{
 	public void setSpendTime(double d) {
 		this.spendTime = d;
 	}
+	public void lackOfAuthority() {
+		this.setMsg("权限不足");
+		this.setStatus(Result.FAILED);
+	}
+	public void wellDone() {
+		this.setMsg("OK");
+		this.setStatus(Result.SUCCESS);
+	}
 }

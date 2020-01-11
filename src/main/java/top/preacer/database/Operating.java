@@ -7,26 +7,27 @@ import java.util.regex.Pattern;
 
 public class Operating {
     private static final Pattern PATTERN_INSERT = Pattern.compile("insert\\s+into\\s+(\\w+)(\\(((\\w+,?)+)\\))?\\s+\\w+\\((([^\\)]+,?)+)\\);?");
-    private static final Pattern PATTERN_CREATE_TABLE = Pattern.compile("create\\stable\\s(\\w+)\\s?\\(((?:\\s?\\w+\\s\\w+,?)+)\\)\\s?;");
-    private static final Pattern PATTERN_ALTER_TABLE_ADD = Pattern.compile("alter\\stable\\s(\\w+)\\sadd\\s(\\w+\\s\\w+)\\s?;");
-    private static final Pattern PATTERN_DELETE = Pattern.compile("delete\\sfrom\\s(\\w+)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;");
-    private static final Pattern PATTERN_UPDATE = Pattern.compile("update\\s(\\w+)\\sset\\s(\\w+\\s?=\\s?[^,\\s]+(?:\\s?,\\s?\\w+\\s?=\\s?[^,\\s]+)*)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;");
-    private static final Pattern PATTERN_DROP_TABLE = Pattern.compile("drop\\stable\\s(\\w+);");
+    private static final Pattern PATTERN_CREATE_TABLE = Pattern.compile("create\\stable\\s(\\w+)\\s?\\(((?:\\s?\\w+\\s\\w+,?)+)\\)\\s?;?");
+    private static final Pattern PATTERN_ALTER_TABLE_ADD = Pattern.compile("alter\\stable\\s(\\w+)\\sadd\\s(\\w+\\s\\w+)\\s?;?");
+    private static final Pattern PATTERN_DELETE = Pattern.compile("delete\\sfrom\\s(\\w+)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;?");
+    private static final Pattern PATTERN_UPDATE = Pattern.compile("update\\s(\\w+)\\sset\\s(\\w+\\s?=\\s?[^,\\s]+(?:\\s?,\\s?\\w+\\s?=\\s?[^,\\s]+)*)(?:\\swhere\\s(\\w+\\s?[<=>]\\s?[^\\s\\;]+(?:\\sand\\s(?:\\w+)\\s?(?:[<=>])\\s?(?:[^\\s\\;]+))*))?\\s?;?");
+    private static final Pattern PATTERN_DROP_TABLE = Pattern.compile("drop\\stable\\s(\\w+);?");
     private static final Pattern PATTERN_SELECT = Pattern.compile("select\\s(\\*|(?:(?:\\w+(?:\\.\\w+)?)+(?:\\s?,\\s?\\w+(?:\\.\\w+)?)*))\\sfrom\\s(\\w+(?:\\s?,\\s?\\w+)*)(?:\\swhere\\s([^\\;]+\\s?;))?");
-    private static final Pattern PATTERN_DELETE_INDEX = Pattern.compile("delete\\sindex\\s(\\w+)\\s?;");
-    private static final Pattern PATTERN_GRANT_ADMIN = Pattern.compile("grant\\sadmin\\sto\\s([^;\\s]+)\\s?;");
-    private static final Pattern PATTERN_REVOKE_ADMIN = Pattern.compile("revoke\\sadmin\\sfrom\\s([^;\\s]+)\\s?;");
+    private static final Pattern PATTERN_DELETE_INDEX = Pattern.compile("delete\\sindex\\s(\\w+)\\s?;?");
+    private static final Pattern PATTERN_GRANT_ADMIN = Pattern.compile("grant\\sadmin\\sto\\s([^;\\s]+)\\s?;?");
+    private static final Pattern PATTERN_REVOKE_ADMIN = Pattern.compile("revoke\\sadmin\\sfrom\\s([^;\\s]+)\\s?;?");
 
 
     public void dbms() {
     	Scanner sc = new Scanner(System.in);
         //User user = new User("user1", "abc");
-    	System.out.println("输入账号");
-    	String username=sc.nextLine();
-    	System.out.println("输入密码");
-    	String pwd=sc.nextLine();
-    	
-        User user = User.getUser(username,pwd);
+//    	System.out.println("输入账号");
+//    	String username=sc.nextLine();
+//    	System.out.println("输入密码");
+//    	String pwd=sc.nextLine();
+//    	
+//        User user = User.getUser(username,pwd);
+    	User user = User.getUser("user1", "abc");
         if (null == user) {
             System.out.println("已退出dbms");
             return;
@@ -140,14 +141,17 @@ public class Operating {
                 }
                 deleteIndex(matcherDeleteIndex);
             }
+            System.out.println("存在语法错误");
         }
 
     }
 
-    private void deleteIndex(Matcher matcherDeleteIndex) {
+    public static String deleteIndex(Matcher matcherDeleteIndex) {
         String tableName = matcherDeleteIndex.group(1);
         Table table = Table.getTable(tableName);
-        System.out.println(table.deleteIndex());
+        String result =table.deleteIndex();
+        System.out.println();
+        return result;
     }
 
     public static void select(Matcher matcherSelect) {
@@ -328,16 +332,16 @@ public class Operating {
             }
             table.update(data, singleFilters);
         }
-        return "OK";
+        return "success";
     }
 
-    private void delete(Matcher matcherDelete) {
+    public static String delete(Matcher matcherDelete) {
         String tableName = matcherDelete.group(1);
         String whereStr = matcherDelete.group(2);
         Table table = Table.getTable(tableName);
         if (null == table) {
             System.out.println("未找到表：" + tableName);
-            return;
+            return "未找到表：" + tableName;
         }
 
         Map<String, Field> fieldMap = table.getFieldMap();
@@ -350,17 +354,20 @@ public class Operating {
             for (Map<String, String> filtMap : filtList) {
                 SingleFilter singleFilter = new SingleFilter(fieldMap.get(filtMap.get("fieldName"))
                         , filtMap.get("relationshipName"), filtMap.get("condition"));
-
                 singleFilters.add(singleFilter);
             }
             table.delete(singleFilters);
         }
+        return "success";
     }
 
     public static String createTable(Matcher matcherCreateTable) {
         String tableName = matcherCreateTable.group(1);
         String propertys = matcherCreateTable.group(2);
         Map<String, Field> fieldMap = StringUtil.parseCreateTable(propertys);
+        if(fieldMap==null) {
+        	return "属性只能为int或varchar或double";
+        }
         String result=Table.createTable(tableName, fieldMap);
         System.out.println(result);
         return result;

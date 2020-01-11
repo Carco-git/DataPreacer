@@ -167,21 +167,25 @@ public class StringUtil {
     /**
      * 解析创建表的字段语句
      *
-     * @param fieldsStr
-     * @return
+     * @param 表内部的属性fieldsStr
+     * @return null说明属性错误
+         * 形如create table test1(a b,c d)
      */
     public static Map<String, Field> parseCreateTable(String fieldsStr) {
         String[] lines = fieldsStr.trim().split(",");
         Map<String, Field> fieldMap = new LinkedHashMap<>();
         for (String line : lines) {
             String[] property = line.trim().split(" ");
-
+            if(!(property[1].equals("int")||property[1].equals("varchar")||property[1].equals("double"))) {
+            	System.out.println(property[1]);
+            	return null;
+            }
             Field field = new Field();
 
             field.setName(property[0]);
             field.setType(property[1]);
             //如果是主键字段后面加*
-            if (3 == property.length && "*".equals(property[2])) {
+            if (3 == property.length && "pk".equals(property[2])) {
                 field.setPrimaryKey(true);
             } else {
                 field.setPrimaryKey(false);
@@ -196,6 +200,7 @@ public class StringUtil {
         Map<String, String> dataMap = new LinkedHashMap<>();
         String[] setStrs = str.trim().split(",");
         for (String setStr : setStrs) {
+        	
             //修改了正则规则，需要末尾加;或空格才能匹配
             Matcher relMatcher = SINGLE_REL_PATTERN.matcher(setStr + ";");
             relMatcher.find();

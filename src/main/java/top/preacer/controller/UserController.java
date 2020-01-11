@@ -46,4 +46,12 @@ public class UserController {
 		return  "111";
 	}
 	*/
+	@RequestMapping(value="/createUser", method = RequestMethod.POST)
+	public String createUser(String username,String password) {
+		return userService.createUser(username, password);	
+	}
+	@RequestMapping(value="/deleteUser", method = RequestMethod.POST)
+	public String deleteUser(String username) {
+		return userService.deleteUser(username);	
+	}
 }

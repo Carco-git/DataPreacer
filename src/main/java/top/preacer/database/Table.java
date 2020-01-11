@@ -463,8 +463,11 @@ public class Table {
                 String[] datas = line.split(" ");
                 Iterator<String> fieldNames = getFieldMap().keySet().iterator();
                 for (String data : datas) {
-                    String dataName = fieldNames.next();
-                    dataMap.put(dataName, data);
+                    if(fieldNames.hasNext()) {
+                    	String dataName = fieldNames.next();
+                    	dataMap.put(dataName, data);
+                    }
+                    
                 }
                 dataMap.put("[lineNum]", String.valueOf(lineNum));
                 dataMapList.add(dataMap);

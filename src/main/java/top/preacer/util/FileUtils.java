@@ -8,6 +8,7 @@ public class FileUtils {
 	public static List<String> getDirectory(String path) {
 		List<String> directories = new ArrayList<String>();
 		File file = new File(path);
+		System.out.println(file.getAbsolutePath());
 		if(!file.exists()) {
 			return null;
 		}
