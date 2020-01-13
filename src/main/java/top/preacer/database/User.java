@@ -3,25 +3,20 @@ package top.preacer.database;
 import java.io.*;
 
 public class User implements Serializable {
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
-	private String name;
-    private String password;
-    public int level;//1只能使用select 2能使用全部权限
-    public final static int READ_ONLY=1;//只读权限
-    public final static int ADMIN=2;//所有权限
+    public static final  int NORMAL=1;//常规角色 可以select
+    public static final  int ADMIN=2;//管理员角色
     private boolean canDelete=false;
     private boolean canUpdate=false;
     private boolean canInsert=false;
+	private String name;
+    private String password;
+    public int role=1;//默认为常规角色
+
     
 
     public User() {
-        name = null;
-        password = null;
-        //1只能使用select 2能使用全部权限
-        level = 1;
     }
 
 
@@ -29,18 +24,13 @@ public class User implements Serializable {
         this.name = name;
         this.password = password;
         //1只能使用select 2能使用全部权限
-        level = 1;
+        role = this.NORMAL;
     }
 
-    /**
-     * 从用户信息文件中读取用户对象并验证密码
-     * @param userName
-     * @param password
-     * @return
-     */
+
     public static User getUser(String userName, String password) {
         User user = null;
-        File file = new File("dir/"+userName, "user.info");
+        File file = new File("storage/"+userName, "user.pojo");
         if (!file.exists()) {
             System.out.println("用户不存在");
             return null;
@@ -75,7 +65,7 @@ public class User implements Serializable {
      */
     public static User getUser(String userName) {
         User user = null;
-        File file = new File("dir/"+userName, "user.info");
+        File file = new File("storage/"+userName, "user.pojo");
         if (!file.exists()) {
             System.out.println("用户不存在");
             return null;
@@ -99,16 +89,16 @@ public class User implements Serializable {
     }
 
     /**
-     * 对用户授权并写入文件
-     * @param level 等级
+     * 对用户授权角色
+     * @param role 角色
      */
-    public void grant(int level) {
-        setLevel(level);
+    public void grant(int role) {
+        setRole(role);
         User.writeUser(this);
     }
 
-    private static void writeUser(User user) {
-        File file = new File("dir/"+user.getName(), "user.info");
+    public static void writeUser(User user) {
+        File file = new File("storage/"+user.getName(), "user.pojo");
         try (
                 FileOutputStream fos = new FileOutputStream(file);
                 ObjectOutputStream oos = new ObjectOutputStream(fos)
@@ -138,12 +128,12 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public int getLevel() {
-        return level;
+    public int getRole() {
+        return role;
     }
 
-    private void setLevel(int level) {
-        this.level = level;
+    public void setRole(int role) {
+        this.role = role;
     }
 
 

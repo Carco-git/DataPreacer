@@ -2,6 +2,8 @@ package top.preacer.database;
 
 import java.util.List;
 
+import top.preacer.database.pojo.Field;
+
 public class JoinCondition {
     private String tableName1;
     private String tableName2;

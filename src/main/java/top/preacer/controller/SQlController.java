@@ -1,43 +1,31 @@
 package top.preacer.controller;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
-import top.preacer.database.User;
 import top.preacer.pojo.Result;
+import top.preacer.pojo.SQLProject;
+import top.preacer.pojo.SelectTable;
 import top.preacer.pojo.UsernameForSer;
 import top.preacer.service.SQLService;
 import top.preacer.util.SQLHandle;
 @CrossOrigin
 @RestController
-public class SQlController {	
-	public static void main(String[] args) {
-		
-	}
+public class SQlController {
 	@Autowired
 	SQLService sqlService;
 	@Autowired
     private HttpServletRequest request;
-	@Autowired
-	private HttpServletResponse response;
 	@RequestMapping(value="/getUserTableNames", method = RequestMethod.POST)
 	public String getUserTableNames(@RequestBody JSONObject url) {
 		System.out.println("一个请求");
@@ -56,20 +44,27 @@ public class SQlController {
 	}
 	
 	@RequestMapping(value="/doSQL",method=RequestMethod.POST)
-	public String doSQL(String username,String sql,String dbname) {
+	public String doSQL(@RequestBody SQLProject sp) {
+		
+		String username=sp.getUsername();
+		String sql=sp.getSql();
+		String dbname=sp.getDbname();
+		
 		sql=SQLHandle.canonicalSQL(sql);
 		String command =  sql.split(" ")[0].trim().toLowerCase();
 		Result returnResult=null;
 		switch(command) {
 		case "select":
+			SelectTable select=sqlService.doSelect(username, sql, dbname);
+			if(select==null)return JSON.toJSONString(new Result().setMsg("找不到表").setStatus(Result.FAILED));
+			return JSON.toJSONString(select);
+		case "grant":returnResult=sqlService.doSQLwhenGrantOrRevoke(sql);
 			break;
-		case "grant":
+		case "revoke":returnResult=sqlService.doSQLwhenGrantOrRevoke(sql);
 			break;
-		case "revoke":
+		case "adduser":returnResult=sqlService.createUser(sql);
 			break;
-		case "adduser":
-			break;
-		case "deleteuser":
+		case "deleteuser":returnResult=sqlService.deleteUser(sql);
 			break;
 		default:
 			returnResult=sqlService.doSQLwhenReturnBool(username, sql, dbname);
@@ -81,30 +76,30 @@ public class SQlController {
 	}
 	
 	
-	@RequestMapping(value="/do",method=RequestMethod.GET)
-	public String doa() {
-		User user=new User();
-		user.setName("user1");
-		user.setPassword("abc");
-		user.level=2;
-		File file = new File("dir/"+user.getName(), "user.info");
-		File filedec = new File("dir/"+user.getName());
-		if(!filedec.exists()) {
-			filedec.mkdir();
-		}
-		System.out.println(file.getAbsolutePath());
-        try (
-                FileOutputStream fos = new FileOutputStream(file);
-                ObjectOutputStream oos = new ObjectOutputStream(fos)
-        ) {
-            oos.writeObject(user);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "OK";
-	}
+//	@RequestMapping(value="/do",method=RequestMethod.GET)
+//	public String doa() {
+//		User user=new User();
+//		user.setName("user1");
+//		user.setPassword("abc");
+//		user.role=user.ADMIN;
+//		File file = new File("storage/"+user.getName(), "user.pojo");
+//		File filedec = new File("storage/"+user.getName());
+//		if(!filedec.exists()) {
+//			filedec.mkdir();
+//		}
+//		System.out.println(file.getAbsolutePath());
+//        try (
+//                FileOutputStream fos = new FileOutputStream(file);
+//                ObjectOutputStream oos = new ObjectOutputStream(fos)
+//        ) {
+//            oos.writeObject(user);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return "OK";
+//	}
 	
 	
 }

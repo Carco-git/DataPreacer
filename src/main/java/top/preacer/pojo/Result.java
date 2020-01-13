@@ -12,14 +12,16 @@ public class Result implements Serializable{
 	public String getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public Result setStatus(String status) {
 		this.status = status;
+		return this;
 	}
 	public String getMsg() {
 		return msg;
 	}
-	public void setMsg(String msg) {
+	public Result setMsg(String msg) {
 		this.msg = msg;
+		return this;
 	}
 	String status;
 	String msg;
@@ -27,15 +29,18 @@ public class Result implements Serializable{
 	public double getSpendTime() {
 		return spendTime;
 	}
-	public void setSpendTime(double d) {
+	public Result setSpendTime(double d) {
 		this.spendTime = d;
+		return this;
 	}
-	public void lackOfAuthority() {
+	public Result lackOfAuthority() {
 		this.setMsg("权限不足");
 		this.setStatus(Result.FAILED);
+		return this;
 	}
-	public void wellDone() {
+	public Result wellDone() {
 		this.setMsg("OK");
 		this.setStatus(Result.SUCCESS);
+		return this;
 	}
 }

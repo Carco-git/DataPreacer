@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import top.preacer.database.pojo.Relationship;
+
 public class Join {
 
     /**

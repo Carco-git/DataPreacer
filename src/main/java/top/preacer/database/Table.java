@@ -3,9 +3,14 @@ package top.preacer.database;
 import java.io.*;
 import java.util.*;
 
+import top.preacer.database.pojo.Field;
+import top.preacer.database.pojo.IndexKey;
+import top.preacer.database.pojo.IndexTree;
+import top.preacer.database.pojo.Relationship;
+
 public class Table {
     private String name;//表名
-    private File folder;//表所在的文件夹
+    private File location;//表所在的文件夹
     private File dictFile;//数据字典
     private LinkedHashSet<File> dataFileSet;
     private File indexFile;//索引文件
@@ -16,7 +21,7 @@ public class Table {
     private static String dbName;//数据库dataBase名，切换时修改
 
     //控制文件行数
-    private static long lineNumConfine = 10;
+    private static long MAX_FILE_LINES = 20;
 
     /**
      * 只能静态创建，所以构造函数私有
@@ -24,11 +29,11 @@ public class Table {
     private Table(String name) {
         this.name = name;
         this.fieldMap = new LinkedHashMap();
-        this.folder = new File("dir" + "/" + userName + "/" + dbName + "/" + name);
-        this.dictFile = new File(folder, name + ".dict");
+        this.location = new File("storage" + "/" + userName + "/" + dbName + "/" + name);
+        this.dictFile = new File(location, name + ".dict");
         this.dataFileSet = new LinkedHashSet<>();
-        //this.dataFile = new File(folder + "/data", 1 + ".data");
-        this.indexFile = new File(folder, this.name + ".index");
+        //this.dataFile = new File(location + "/data", 1 + ".data");
+        this.indexFile = new File(location, this.name + ".index");
         this.indexMap = new HashMap<>();
     }
 
@@ -101,10 +106,10 @@ public class Table {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        File[] dataFiles = new File(table.folder, "data").listFiles();
+        File[] dataFiles = new File(table.location, "data").listFiles();
         if (null != dataFiles && 0 != dataFiles.length) {
             for (int i = 1; i <= dataFiles.length; i++) {
-                File dataFile = new File(table.folder + "/data", i + ".data");
+                File dataFile = new File(table.location + "/data", i + ".data");
                 table.dataFileSet.add(dataFile);
             }
         }
@@ -124,13 +129,13 @@ public class Table {
     }
 
 
-    private static void deleteFolder(File file) {
+    private static void deletelocation(File file) {
         if (file.isFile()) {//判断是否是文件
             file.delete();//删除文件
         } else if (file.isDirectory()) {//否则如果它是一个目录
             File[] files = file.listFiles();//声明目录下所有的文件 files[];
             for (int i = 0; i < files.length; i++) {//遍历目录下所有的文件
-                deleteFolder(files[i]);//把每个文件用这个方法进行迭代
+                deletelocation(files[i]);//把每个文件用这个方法进行迭代
             }
             file.delete();//删除文件夹
         }
@@ -141,8 +146,8 @@ public class Table {
         if (!existTable(name)) {
             return "错误：不存在表:" + name;
         }
-        File folder = new File("dir" + "/" + userName + "/" + dbName + "/" + name);
-        deleteFolder(folder);
+        File location = new File("storage" + "/" + userName + "/" + dbName + "/" + name);
+        deletelocation(location);
         return "success";
 
     }
@@ -154,8 +159,9 @@ public class Table {
      * @return 存在与否
      */
     private static boolean existTable(String name) {
-        File folder = new File("dir" + "/" + userName + "/" + dbName + "/" + name);
-        return folder.exists();
+        File location = new File("storage" + "/" + userName + "/" + dbName + "/" + name);
+        System.out.println(location.getAbsolutePath());
+        return location.exists();
     }
 
     /**
@@ -313,12 +319,12 @@ public class Table {
         }
         //如果没有一个文件，新建1.data
         if (null == lastFile || 0 == fileNum) {
-            lastFile = new File(folder + "/data", 1 + ".data");
+            lastFile = new File(location + "/data", 1 + ".data");
             dataFileSet.add(lastFile);
             lineNum = 0;
-        } else if (lineNumConfine <= fileLineNum(lastFile)) {
+        } else if (MAX_FILE_LINES <= fileLineNum(lastFile)) {
             //如果最后一个文件大于行数限制，新建数据文件
-            lastFile = new File(folder + "/data", fileNum + 1 + ".data");
+            lastFile = new File(location + "/data", fileNum + 1 + ".data");
             dataFileSet.add(lastFile);
             lineNum = 0;
         }
@@ -562,13 +568,14 @@ public class Table {
      * 根据给定的过滤器组，查找索引，将指定的文件数据删除
      *
      * @param singleFilters 过滤器组
+     * @param maxDeleteLines 
      */
-    public void delete(List<SingleFilter> singleFilters) {
+    public void delete(List<SingleFilter> singleFilters, int maxDeleteLines) {
         //此处查找索引
         //deleteData(this.dataFile, singleFilters);
         Set<File> fileSet = findFileSet(singleFilters);
         for (File file : fileSet) {
-            deleteData(file, singleFilters);
+            deleteData(file, singleFilters,maxDeleteLines);
         }
         buildIndex();
         writeIndex();
@@ -579,14 +586,23 @@ public class Table {
      *
      * @param file          数据文件
      * @param singleFilters 过滤器组
+     * @param maxDeleteLines 删除的最大行数
      */
-    private void deleteData(File file, List<SingleFilter> singleFilters) {
+    private void deleteData(File file, List<SingleFilter> singleFilters, int maxDeleteLines) {
         //读取数据文件
         List<Map<String, String>> srcDatas = readDatas(file);
         List<Map<String, String>> filtDatas = new ArrayList<>(srcDatas);
         //Collections.copy(filtDatas, srcDatas);
         for (SingleFilter singleFilter : singleFilters) {
-            filtDatas = singleFilter.singleFiltData(filtDatas);
+        	if(maxDeleteLines==0) {//未指定删除行数的限制条件
+        		System.out.println("未指定");
+        		filtDatas = singleFilter.singleFiltData(filtDatas);
+        	}else {
+        		System.out.println("指定");
+        		filtDatas = singleFilter.singleFiltDataWithLinesLimit(filtDatas,maxDeleteLines);
+        		
+        	}
+            
         }
         srcDatas.removeAll(filtDatas);
         writeDatas(file, srcDatas);
@@ -600,6 +616,7 @@ public class Table {
      */
     public void update(Map<String, String> updateDatas, List<SingleFilter> singleFilters) {
         Set<File> fileSet = findFileSet(singleFilters);
+        System.out.println("更新全部");
         for (File file : fileSet) {
             updateData(file, updateDatas, singleFilters);
         }
@@ -686,7 +703,7 @@ public class Table {
      */
     private void buildIndex() {
         indexMap = new HashMap<>();
-        File[] dataFiles = new File(folder, "data").listFiles();
+        File[] dataFiles = new File(location, "data").listFiles();
         //每个文件
         for (File dataFile : dataFiles) {
             List<Map<String, String>> datas = readDatasAndLineNum(dataFile);
@@ -718,7 +735,7 @@ public class Table {
         //重新填充dataFileSet
         if (null != dataFiles && 0 != dataFiles.length) {
             for (int i = 1; i <= dataFiles.length; i++) {
-                File dataFile = new File(folder + "/data", i + ".data");
+                File dataFile = new File(location + "/data", i + ".data");
                 dataFileSet.add(dataFile);
             }
         }

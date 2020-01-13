@@ -1,8 +1,10 @@
-package top.preacer.database;
+package top.preacer.database.util;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import top.preacer.database.pojo.Field;
 
 public class StringUtil {
     //匹配表的选择关系

@@ -1,6 +1,10 @@
 package top.preacer.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +14,7 @@ import com.alibaba.fastjson.JSON;
 import top.preacer.database.User;
 import top.preacer.pojo.Result;
 import top.preacer.service.UserService;
-
+@CrossOrigin
 @RestController
 public class UserController {
 
@@ -34,8 +38,6 @@ public class UserController {
 			ur.setMsg("密码错误");
 			return JSON.toJSONString(ur);
 		}
-		//logger.info(user+"登录成功");
-		//ur.setToken(tokenService.generateToken(user));
 		ur.setStatus(Result.SUCCESS);
 		ur.setMsg("登录成功");
 		return JSON.toJSONString(ur);
@@ -54,4 +56,19 @@ public class UserController {
 	public String deleteUser(String username) {
 		return userService.deleteUser(username);	
 	}
+	
+
+	@RequestMapping(value="/backUp", method = RequestMethod.GET)    
+	public String testDownload(HttpServletRequest request, HttpServletResponse response)throws Exception{
+		String username=request.getParameter("username");
+		String dbname=request.getParameter("dbname");
+		userService.backUp(username,dbname,response);
+		return "thanks";
+		}
+	@RequestMapping(value="/createDB", method = RequestMethod.GET) 
+	public String cdb(String username, String dbname){
+		return JSON.toJSONString(userService.createDatabase(username, dbname));
+		
+	}
+	
 }

@@ -1,11 +1,15 @@
-package top.preacer.database;
+package top.preacer.database.pojo;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class IndexKey implements Comparable, Serializable {
-    private String value;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String value;
     private String type;
 
     public IndexKey(String value, String type) {
@@ -45,13 +49,11 @@ public class IndexKey implements Comparable, Serializable {
         }
 
         IndexKey indexKey = (IndexKey) o;
-        //type可以推断出来，所以忽略以提升效率
         return value != null ? value.equals(indexKey.value) : indexKey.value == null;
     }
 
     @Override
     public int hashCode() {
-        //type可以推断出来，所以忽略以提升效率
         return value != null ? value.hashCode() : 0;
     }
 

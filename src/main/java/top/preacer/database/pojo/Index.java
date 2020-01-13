@@ -1,9 +1,13 @@
 
-package top.preacer.database;
+package top.preacer.database.pojo;
 import java.io.Serializable;
 
 public class Index implements Serializable{
-    private String filePath;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String filePath;
     private int lineNum;
 
     public Index(String filePath, int lineNum) {

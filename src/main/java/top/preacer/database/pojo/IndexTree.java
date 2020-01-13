@@ -1,11 +1,40 @@
-package top.preacer.database;
+package top.preacer.database.pojo;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
 public class IndexTree implements Serializable {
-    private TreeMap<IndexKey, IndexNode> treeMap;
+	
+	
+	class IndexNode implements Serializable{
+		private static final long serialVersionUID = 1L;
+		private List<Index> indexList;
+
+	    public IndexNode() {
+	        this.indexList = new ArrayList<>();
+	    }
+
+	    public void addIndex(Index index) {
+	        indexList.add(index);
+	    }
+
+	    public Iterator<Index> indexIterator() {
+	        return indexList.iterator();
+	    }
+
+	    public Set<File> getFiles() {
+	        Set<File> fileSet = new HashSet<>();
+	        Iterator<Index> indexIterator = indexIterator();
+	        for (Index index : indexList) {
+	            File file = new File(index.getFilePath());
+	            fileSet.add(file);
+	        }
+	        return fileSet;
+	    }
+	}
+	private static final long serialVersionUID = 1L;
+	private TreeMap<IndexKey, IndexNode> treeMap;
 
     public IndexTree() {
         treeMap = new TreeMap<>();
@@ -89,16 +118,5 @@ public class IndexTree implements Serializable {
         indexNode.addIndex(index);
     }
 
-    /*public void buildIndex() {
-        for (String fieldName : fieldMap.keySet()) {
-
-        }
-        File[] dataFiles=new File(folder, "data").listFiles();
-        for (File dataFile : dataFiles) {
-            List<Map<String,String>> datas=readDatas(dataFile);
-            for (Map<String, String> data : datas) {
-
-            }
-        }
-    }*/
+    
 }

@@ -1,15 +1,21 @@
 package top.preacer.service.impl;
 import java.io.*;
+import java.util.Date;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Service;
 
 import top.preacer.database.User;
+import top.preacer.database.util.FileBackUpUtil;
+import top.preacer.pojo.Result;
 import top.preacer.service.UserService;
 @Service
 public class UserServiceImpl implements UserService {
 	public User LoginUser(String name, String password) throws Exception {
         User user = null;
-        File file = new File("dir/"+name, "user.info");
+        File file = new File("storage/"+name, "user.pojo");
         if (!file.exists()) {
             System.out.println("用户不存在");
             throw new Exception("user not exist");
@@ -42,7 +48,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User getUser(String name) { 
 		User user = null;
-    File file = new File("dir/"+name, "user.info");
+    File file = new File("storage/"+name, "user.pojo");
     if (!file.exists()) {
         System.out.println("用户不存在");
         return null;
@@ -68,26 +74,18 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public String createUser(String name, String password) {
 		User user = new User(name,password);
-    	user.level=1;
-		File filefolder=new File("dir/"+user.getName());
+    	user.setRole(user.NORMAL);
+		File filefolder=new File("storage/"+user.getName());
 		if(!filefolder.exists()){//如果文件夹不存在
 			filefolder.mkdir();//创建文件夹
 		    System.out.println("已添加"+user.getName()+"用户");
 		}
 		else
 		{
-	     System.out.println("用户已存在");
-		 return "用户已存在";
+			System.out.println("用户已存在");
+			return "用户已存在";
 		}
-		/*try{//异常处理
-			//如果文件夹下没有user.info就会创建该文件
-			BufferedWriter bw=new BufferedWriter(new FileWriter("D:\\Qiju_Li\\Qiju_Li.txt"));
-			bw.write("Hello I/O!");//在创建好的文件中写入"Hello I/O"
-			bw.close();//一定要关闭文件
-		}catch(IOException e){
-			e.printStackTrace();
-		}*/
-    	File file = new File("dir/"+user.getName(), "user.info");
+    	File file = new File("storage/"+user.getName(), "user.pojo");
         try (
                 FileOutputStream fos = new FileOutputStream(file);
                 ObjectOutputStream oos = new ObjectOutputStream(fos)
@@ -107,14 +105,14 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public String deleteUser(String name) {
 		User user = User.getUser(name);
-		File filefolder=new File("dir/"+user.getName());
+		File filefolder=new File("storage/"+user.getName());
 		if(!filefolder.exists()){//如果文件夹不存在	
 	     System.out.println("用户不存在");
 		 return "用户不存在";
 		}
 		else
 		{
-		 delDir("dir/"+user.getName());//删除文件夹
+		 delDir("storage/"+user.getName());//删除文件夹
 		 System.out.println("已删除"+user.getName()+"用户");
 		 return "已删除"+user.getName()+"用户";
 		}
@@ -134,6 +132,70 @@ public class UserServiceImpl implements UserService {
 	        }
 	        dir.delete();
 	    }
+	}
+
+	@Override
+	public String backUp(String username, String dbname,HttpServletResponse response) {
+		Date time = new Date();
+		File filefolder=new File("storage/"+username+"/"+dbname);
+		if(filefolder.exists()) {
+			String filename=dbname+"-"+time.getTime()+".zip";
+			try {
+				FileBackUpUtil.compress("storage/"+username+"/"+dbname,"storage/"+username+"/"+filename);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+				 response.setContentType("application/force-download");// 设置强制下载不打开            
+	             response.addHeader("Content-Disposition", "attachment;fileName=" + filename);
+	             FileInputStream fis = null;
+	             
+	             File file = new File("storage/"+username+"/"+filename);
+	             
+	             try {
+	                 fis = new FileInputStream("storage/"+username+"/"+filename);
+//	            	 fis = new FileInputStream("F:\\workspace-sts-3.9.9.RELEASE\\drugpreacer.rar");
+	            	 ServletOutputStream outputStream = response.getOutputStream();
+	                 byte[] buffer =new byte[1024];
+	                 int b=0;
+	                 while((b=fis.read(buffer))!= -1) {
+	                	 System.out.println(buffer);
+	                	 outputStream.write(buffer,0,b);
+	                 }
+	                 outputStream.flush();
+	               
+	               return "下载成功";
+	             } catch (Exception e) {
+	                 e.printStackTrace();
+	             } finally {
+	                 if (fis != null) {
+	                     try {
+	                         fis.close();
+	                     } catch (IOException e) {
+	                         e.printStackTrace();
+	                     }
+	                 }
+	             }
+	         }
+	        return "下载失败";    
+	}
+
+	@Override
+	public Result createDatabase(String username, String dbname) {
+		Result result=new Result();
+		long startMili=System.currentTimeMillis();// 当前时间对应的毫秒数
+		User user = User.getUser(username);
+		File filefolder=new File("storage/"+user.getName()+"/"+dbname);
+		if(!filefolder.exists()){//如果文件夹不存在
+			filefolder.mkdir();//创建文件夹
+		    System.out.println("已添加"+dbname+"数据库");
+			 result.wellDone();
+		}
+		else
+		{
+			System.out.println("数据库已存在");
+            result.setStatus(Result.FAILED);
+		}
+		return result;
 	}
 
 

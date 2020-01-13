@@ -1,9 +1,11 @@
-package top.preacer.database;
+package top.preacer.database.pojo;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import top.preacer.database.JoinCondition;
 
 public enum Relationship {
     LESS_THAN,

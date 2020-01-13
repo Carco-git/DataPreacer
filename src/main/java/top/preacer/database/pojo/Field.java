@@ -1,4 +1,4 @@
-package top.preacer.database;
+package top.preacer.database.pojo;
 //域文件用来规定属性名字 属性种类 属性是否为主键 用于写入数据字典
 public class Field {
     private String name;

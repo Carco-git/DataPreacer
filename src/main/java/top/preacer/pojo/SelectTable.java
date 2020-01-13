@@ -1,24 +1,20 @@
 package top.preacer.pojo;
 
 import java.util.List;
+import java.util.Map;
 
-public class Table {
+public class SelectTable {
+	
 	public List<String> getColumnName() {
 		return columnName;
 	}
 	public void setColumnName(List<String> columnName) {
 		this.columnName = columnName;
 	}
-	public List<String> getColumnProp() {
-		return columnProp;
-	}
-	public void setColumnProp(List<String> columnProp) {
-		this.columnProp = columnProp;
-	}
-	public List<List<String>> getRowList() {
+	public List<Map<String, String>> getRowList() {
 		return rowList;
 	}
-	public void setRowList(List<List<String>> rowList) {
+	public void setRowList(List<Map<String, String>> rowList) {
 		this.rowList = rowList;
 	}
 	public int getRow() {
@@ -34,8 +30,7 @@ public class Table {
 		this.col = col;
 	}
 	private List<String> columnName;
-	private List<String> columnProp;
-	private List<List<String>> rowList;
+	private List<Map<String, String>> rowList;
 	private int row;
 	private int col;
 }
