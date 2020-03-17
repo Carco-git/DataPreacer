@@ -1,7 +1,5 @@
 package top.preacer.service.impl;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,7 +93,8 @@ public class SQLServiceImpl implements SQLService{
             	result.setMsg(get);
             	result.setStatus(Result.FAILED);
             }else if(get.contains("success")) {
-            	result.wellDone();
+            	result.wellDone().setMsg("修改表成功");
+            	
             }
             result.setSpendTime((System.currentTimeMillis()-startMili)/10.0);
             return result;
@@ -112,7 +111,7 @@ public class SQLServiceImpl implements SQLService{
                 	result.setMsg(get);
                 	result.setStatus(Result.FAILED);
                 }else if(get.contains("success")) {
-                	result.wellDone();
+                	result.wellDone().setMsg("创建成功");
                 }
             }
             result.setSpendTime((System.currentTimeMillis()-startMili)/10.0);
@@ -128,7 +127,7 @@ public class SQLServiceImpl implements SQLService{
 	                	result.setMsg(get);
 	                	result.setStatus(Result.FAILED);
 	                }else if(get.contains("success")) {
-	                	result.wellDone();
+	                	result.wellDone().setMsg("删除成功");
 	                }
 	           }
 			 result.setSpendTime((System.currentTimeMillis()-startMili)/10.0);
@@ -147,7 +146,7 @@ public class SQLServiceImpl implements SQLService{
 				 String get=SQLimpl.insert(matcherInsert);
 				 System.out.println(get);
 				 if(get.contains("success")) {
-					 result.wellDone();
+					 result.wellDone().setMsg("插入成功");
 				 }else {
 					result.setMsg(get);
 	                result.setStatus(Result.FAILED);
@@ -161,7 +160,7 @@ public class SQLServiceImpl implements SQLService{
 			 }else {
 				 String get=SQLimpl.update(matcherUpdate);
 				 if(get.contains("success")) {
-					 result.wellDone();
+					 result.wellDone().setMsg("更新成功");
 					}else {
 						result.setMsg(get);
 		                result.setStatus(Result.FAILED);
@@ -174,7 +173,7 @@ public class SQLServiceImpl implements SQLService{
              }else {
 				 String get=SQLimpl.delete(matcherDelete);;
 				 if(get.contains("success")) {
-					 result.wellDone();
+					 result.wellDone().setMsg("删除成功");
 				 }else {
 					result.setMsg(get);
 	                result.setStatus(Result.FAILED);
@@ -188,7 +187,7 @@ public class SQLServiceImpl implements SQLService{
              }else {
             	 String get=SQLimpl.deleteIndex(matcherDeleteIndex);
 				 if(get.contains("success")) {
-					 result.wellDone();
+					 result.wellDone().setMsg("删除索引成功");
 				 }else {
 					result.setMsg(get);
 	                result.setStatus(Result.FAILED);
@@ -203,7 +202,6 @@ public class SQLServiceImpl implements SQLService{
 	@Override
 	public Result doSQLwhenGrantOrRevoke(String sql) {
 		Result result=new Result();
-		long startMili=System.currentTimeMillis();// 当前时间对应的毫秒数
 		sql=SQLHandle.canonicalSQL(sql);
 		Matcher matcherGrantAdmin = SQL_GRANT_ADMIN.matcher(sql);
 		Matcher matcherGrantInsert= SQL_GRANT_INSERT.matcher(sql);
@@ -217,7 +215,7 @@ public class SQLServiceImpl implements SQLService{
 		while (matcherGrantAdmin.find()) {
 			String get=SQLimpl.grantAdmin(matcherGrantAdmin);
 				 if(get.contains("success")) {
-					 result.wellDone();
+					 result.wellDone().setMsg("授权成功");
 				 }else {
 					result.setMsg(get);
 	                result.setStatus(Result.FAILED);
@@ -226,7 +224,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherGrantDelete.find()) {
         	String get=SQLimpl.grantDelete(matcherGrantDelete);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("授权成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -235,7 +233,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherGrantInsert.find()) {
         	String get=SQLimpl.grantInsert(matcherGrantInsert);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("授权成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -244,7 +242,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherGrantUpdate.find()) {
         	String get=SQLimpl.grantUpdate(matcherGrantUpdate);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("授权成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -253,7 +251,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherRevokeAdmin.find()) {
         	String get=SQLimpl.revokeAdmin(matcherRevokeAdmin);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("撤销权限成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -262,7 +260,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherRevokeDelete.find()) {
         	String get=SQLimpl.revokeDelete(matcherRevokeDelete);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("撤销权限成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -271,7 +269,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherRevokeInsert.find()) {
         	String get=SQLimpl.revokeInsert(matcherRevokeInsert);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("撤销权限成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -280,7 +278,7 @@ public class SQLServiceImpl implements SQLService{
         while (matcherRevokeUpdate.find()) {
         	String get=SQLimpl.revokeUpdate(matcherRevokeUpdate);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("撤销权限成功");
 			 }else {
 				result.setMsg(get);
                result.setStatus(Result.FAILED);
@@ -292,7 +290,6 @@ public class SQLServiceImpl implements SQLService{
 	@Override
 	public Result deleteUser(String sql) {
 		Result result=new Result();
-		long startMili=System.currentTimeMillis();// 当前时间对应的毫秒数
 		sql=SQLHandle.canonicalSQL(sql);
         Matcher matcherDeleteuser = SQL_DELETEUSER.matcher(sql);
         
@@ -300,7 +297,7 @@ public class SQLServiceImpl implements SQLService{
         {
         	String get=SQLimpl.deleteuser(matcherDeleteuser);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("删除用户成功");
 			 }else {
 				result.setMsg(get);
               result.setStatus(Result.FAILED);
@@ -312,14 +309,13 @@ public class SQLServiceImpl implements SQLService{
 	@Override
 	public Result createUser(String sql) {
 		Result result=new Result();
-		long startMili=System.currentTimeMillis();// 当前时间对应的毫秒数
 		sql=SQLHandle.canonicalSQL(sql);
         Matcher matcherAdduser = SQL_ADDUSER.matcher(sql);
         while(matcherAdduser.find())
         {
         	String get=SQLimpl.adduser(matcherAdduser);
 			 if(get.contains("success")) {
-				 result.wellDone();
+				 result.wellDone().setMsg("创建用户成功");
 			 }else {
 				result.setMsg(get);
              result.setStatus(Result.FAILED);

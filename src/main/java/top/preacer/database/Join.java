@@ -5,26 +5,28 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import top.preacer.database.pojo.Relationship;
+import top.preacer.database.pojo.Relate;
 
 public class Join {
 
     /**
      * 将数据进行连接并去掉对应的投影，如果匹配到条件做条件连接，没有匹配到就做笛卡尔积
+     * 启发式的查询优化
      * @param tableDatasMap 所有数据
      * @param joinConditionList 连接条件列表
      * @param projectionMap 投影表
      * @return 最终数据
      */
     public static List<Map<String, String>> joinData(Map<String, List<Map<String, String>>> tableDatasMap, List<JoinCondition> joinConditionList, Map<String, List<String>> projectionMap) {
-        List<Map<String, String>> resultProduct = new LinkedList<>();
-        for (Map.Entry<String, List<Map<String, String>>> datasEntry : tableDatasMap.entrySet()) {
 
+    	List<Map<String, String>> resultProduct = new LinkedList<>();
+        for (Map.Entry<String, List<Map<String, String>>> datasEntry : tableDatasMap.entrySet()) {
+        	//获取属性和对应的元素
             String tableName = datasEntry.getKey();
             List<Map<String, String>>datas=datasEntry.getValue();
             //连接前进行一次投影
             datas=projection(datas, projectionMap);
-
+            
             //在上次乘积中找存在连接条件的连接表
             String leftTableName = findTableName(resultProduct, joinConditionList);
             //如果没找到，做笛卡尔积
@@ -93,7 +95,7 @@ public class Join {
         for (Map<String, String> srcLine : srcProduct) {
             for (Map<String, String> joinLine : joinProduct) {
                 //如果与条件匹配,添加此行
-                if(Relationship.matchJionCondition(srcLine, joinLine, joinCondition)) {
+                if(Relate.matchJionCondition(srcLine, joinLine, joinCondition)) {
                     Map<String, String> newLine = new LinkedHashMap<>();
                     newLine.putAll(srcLine);
                     newLine.putAll(joinLine);

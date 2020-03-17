@@ -7,7 +7,7 @@ import java.util.*;
 public class IndexTree implements Serializable {
 	
 	
-	class IndexNode implements Serializable{
+	public static class IndexNode implements Serializable{
 		private static final long serialVersionUID = 1L;
 		private List<Index> indexList;
 
@@ -33,6 +33,64 @@ public class IndexTree implements Serializable {
 	        return fileSet;
 	    }
 	}
+	public static class IndexKey implements Comparable, Serializable {
+		private static final long serialVersionUID = 1L;
+		private String value;
+	    private String type;
+
+	    public IndexKey(String value, String type) {
+	        this.value = value;
+	        this.type = type;
+	    }
+
+
+	    @Override
+	    public int compareTo(Object ohterValue) {
+	        String keyValue = ((IndexKey) ohterValue).getValue();
+	        try {
+	            switch (type) {
+	                case "int":
+	                    return Integer.valueOf(value).compareTo(Integer.valueOf(keyValue));
+	                case "double":
+	                    return Double.valueOf(value).compareTo(Double.valueOf(keyValue));
+	                case "varchar":
+	                    return value.compareTo(String.valueOf(keyValue));
+	                default:
+	                    throw new Exception("条件限定不匹配");
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	        return 0;
+	    }
+
+
+	    @Override
+	    public boolean equals(Object o) {
+	        if (this == o) {
+	            return true;
+	        }
+	        if (o == null || getClass() != o.getClass()) {
+	            return false;
+	        }
+
+	        IndexKey indexKey = (IndexKey) o;
+	        return value != null ? value.equals(indexKey.value) : indexKey.value == null;
+	    }
+
+	    @Override
+	    public int hashCode() {
+	        return value != null ? value.hashCode() : 0;
+	    }
+
+	    public String getValue() {
+	        return value;
+	    }
+
+	    public String getType() {
+	        return type;
+	    }
+	}
 	private static final long serialVersionUID = 1L;
 	private TreeMap<IndexKey, IndexNode> treeMap;
 
@@ -48,7 +106,7 @@ public class IndexTree implements Serializable {
         this.treeMap = treeMap;
     }
 
-    public List<IndexNode> find(Relationship relationship, IndexKey condition) {
+    public List<IndexNode> find(Relate relationship, IndexKey condition) {
         List<IndexNode> indexNodeList = new ArrayList<>();
         Map<IndexKey, IndexNode> indexNodeMap = null;
         switch (relationship) {
@@ -70,7 +128,7 @@ public class IndexTree implements Serializable {
                     indexNodeList.add(indexNode);
                 }
                 break;
-            case MORE_THAN:
+            case GREATER_THAN:
                 //此方法获得大于等于key的映射，如果有等于那么要去掉等于key的映射
                 indexNodeMap = treeMap.tailMap(condition);
                 if (null != indexNodeMap) {
@@ -93,7 +151,7 @@ public class IndexTree implements Serializable {
         return indexNodeList;
     }
 
-    public Set<File> getFiles(Relationship relationship, IndexKey condition) {
+    public Set<File> getFiles(Relate relationship, IndexKey condition) {
         Set<File> fileSet = new HashSet<>();
         List<IndexNode> indexNodes = this.find(relationship, condition);
         for (IndexNode indexNode : indexNodes) {

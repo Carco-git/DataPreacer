@@ -1,0 +1,3 @@
+uid int *
+username varchar ^
+password varchar ^

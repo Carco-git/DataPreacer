@@ -1,0 +1,3 @@
+uid int *
+age varchar ^
+birthday varchar ^

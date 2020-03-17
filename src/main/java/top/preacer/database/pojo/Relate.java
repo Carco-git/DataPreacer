@@ -7,9 +7,9 @@ import java.util.Map;
 
 import top.preacer.database.JoinCondition;
 
-public enum Relationship {
+public enum Relate {
     LESS_THAN,
-    MORE_THAN,
+    GREATER_THAN,
     EQUAL_TO;
 
     private final static Map<String,Class> TYPE_MAP =new HashMap<String,Class>();
@@ -20,17 +20,17 @@ public enum Relationship {
         TYPE_MAP.put("varchar", String.class);
     }
 
-    public static Relationship parseRel(String relationshipName) {
+    public static Relate parseRel(String relationshipName) {
         switch (relationshipName) {
             case "<":
-                return Relationship.LESS_THAN;
+                return Relate.LESS_THAN;
             case "=":
-                return Relationship.EQUAL_TO;
+                return Relate.EQUAL_TO;
             case ">":
-                return Relationship.MORE_THAN;
+                return Relate.GREATER_THAN;
             default:
                 try {
-                    throw new Exception("条件错误");
+                    throw new Exception("存在语法错误");
                 } catch (Exception e) {
                     e.printStackTrace();
                     return null;
@@ -38,7 +38,7 @@ public enum Relationship {
         }
     }
 
-    private static boolean compareResult(Relationship relationship, int result) {
+    private static boolean compareResult(Relate relationship, int result) {
         switch (relationship) {
             case LESS_THAN:
                 if (result < 0) {
@@ -54,7 +54,7 @@ public enum Relationship {
                     return false;
                 }
 
-            case MORE_THAN:
+            case GREATER_THAN:
                 if (result > 0) {
                     return true;
                 } else {
@@ -63,7 +63,7 @@ public enum Relationship {
 
             default:
                 try {
-                    throw new Exception("条件限定不匹配");
+                    throw new Exception("条件不匹配");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -80,7 +80,7 @@ public enum Relationship {
      * @param condition    比较的数据
      * @return 是否匹配
      */
-    public static boolean matchCondition(Map<String, String> srcData, Field field, Relationship relationship, String condition) {
+    public static boolean matchCondition(Map<String, String> srcData, Field field, Relate relationship, String condition) {
         if (null == srcData.get(field.getName()) || "[NULL]".equals(srcData.get(field.getName()))) {
             return false;
         }
@@ -177,7 +177,7 @@ public enum Relationship {
         }
 
         //解析关系
-        Relationship relationship = Relationship.parseRel(joinCondition.getRelationshipName());
+        Relate relationship = Relate.parseRel(joinCondition.getRelationshipName());
         //比较关系
         return compareResult(relationship, result);
     }

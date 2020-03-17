@@ -1,12 +1,30 @@
 package top.preacer.database;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import top.preacer.database.pojo.Field;
-import top.preacer.database.pojo.IndexKey;
 import top.preacer.database.pojo.IndexTree;
-import top.preacer.database.pojo.Relationship;
+import top.preacer.database.pojo.IndexTree.IndexKey;
+import top.preacer.database.pojo.Relate;
 
 public class Table {
     private String name;//表名
@@ -14,8 +32,8 @@ public class Table {
     private File dictFile;//数据字典
     private LinkedHashSet<File> dataFileSet;
     private File indexFile;//索引文件
-    private Map<String, Field> fieldMap;//字段映射集
-    //存放对所有字段的索引树
+    private Map<String, Field> fieldMap;//字段映射集 存放对所有字段的索引树
+    //
     private Map<String, IndexTree> indexMap;
     private static String userName;//用户姓名，切换或修改用户时修改
     private static String dbName;//数据库dataBase名，切换时修改
@@ -30,7 +48,7 @@ public class Table {
         this.name = name;
         this.fieldMap = new LinkedHashMap();
         this.location = new File("storage" + "/" + userName + "/" + dbName + "/" + name);
-        this.dictFile = new File(location, name + ".dict");
+        this.dictFile = new File(location, name + ".dictionary");
         this.dataFileSet = new LinkedHashSet<>();
         //this.dataFile = new File(location + "/data", 1 + ".data");
         this.indexFile = new File(location, this.name + ".index");
@@ -149,7 +167,6 @@ public class Table {
         File location = new File("storage" + "/" + userName + "/" + dbName + "/" + name);
         deletelocation(location);
         return "success";
-
     }
 
     /**
@@ -160,7 +177,7 @@ public class Table {
      */
     private static boolean existTable(String name) {
         File location = new File("storage" + "/" + userName + "/" + dbName + "/" + name);
-        System.out.println(location.getAbsolutePath());
+//        System.out.println(location.getAbsolutePath());
         return location.exists();
     }
 
@@ -178,9 +195,7 @@ public class Table {
             }
         }
         writeDict(fields, true);
-
         fieldMap.putAll(fields);
-
         return "success";
     }
 
@@ -309,6 +324,7 @@ public class Table {
      * @return
      */
     public String insert(Map<String, String> srcData) {
+    	
         File lastFile = null;
         int lineNum = 0;
         int fileNum = 0;
@@ -329,9 +345,12 @@ public class Table {
             lineNum = 0;
         }
         //添加索引
+//        System.out.println(fieldMap);
         for (Map.Entry<String, Field> fieldEntry : fieldMap.entrySet()) {
+//        	System.out.println(fieldEntry);
             String dataName = fieldEntry.getKey();
             String dataValue = srcData.get(dataName);
+//            System.out.println(dataValue);
             //如果发现此数据为空，不添加到索引树中
             if (null == dataValue || "[NULL]".equals(dataValue)) {
                 continue;
@@ -389,7 +408,7 @@ public class Table {
             pw.println(line.toString());
         } catch (IOException e) {
             e.printStackTrace();
-            return "写入异常";
+            return "写入错误异常";
         }
 
         buildIndex();
@@ -747,12 +766,19 @@ public class Table {
         for (SingleFilter singleFilter : singleFilters) {
             String fieldName = singleFilter.getField().getName();
             String fieldType = singleFilter.getField().getType();
-            Relationship relationship = singleFilter.getRelationship();
+            Relate relationship = singleFilter.getRelate();
             String condition = singleFilter.getCondition();
 
             IndexKey indexKey = new IndexKey(condition, fieldType);
             IndexTree indexTree = indexMap.get(fieldName);
-            fileSet.addAll(indexTree.getFiles(relationship, indexKey));
+            try{
+            	Set<File> temp=indexTree.getFiles(relationship, indexKey);
+            	fileSet.addAll(temp);
+            }catch(Exception e){
+            	 System.out.println(indexTree);
+            	e.printStackTrace();
+            }
+           
         }
         return fileSet;
     }

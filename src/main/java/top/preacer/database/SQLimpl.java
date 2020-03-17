@@ -45,7 +45,7 @@ public class SQLimpl {
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i].trim();
                 String fieldValue = fieldValues[i].trim();
-                //如果在数据字典中未发现这个字段，返回错误
+                //先查找数据字典，看是不是有对应的属性
                 if (!dictMap.containsKey(fieldName)) {
                     return "未知的列"+fieldName;
                 }
@@ -60,7 +60,9 @@ public class SQLimpl {
                 i++;
             }
         }
+//        System.out.println(data);
         table.insert(data);
+      //{school=5, sex=3, name=2, id=4, height=4}
         return "success";
     }
 
@@ -102,8 +104,14 @@ public class SQLimpl {
         if (null == table) {
             System.out.println("未找到表：" + tableName);
             return "未找到表：" + tableName;
+        } 
+        boolean isLimit =false;
+        if(matcherDelete.group(3)!=null) {
+        	if(matcherDelete.group(3).contains("limit")) {
+            	isLimit=true;
+            }
         }
-        boolean isLimit = matcherDelete.group(3).contains("limit");
+        
         int maxDeleteLines=0;
         if(isLimit) {
         	maxDeleteLines = Integer.parseInt(matcherDelete.group(4));
@@ -120,6 +128,7 @@ public class SQLimpl {
                         , filtMap.get("relationshipName"), filtMap.get("condition"));
                 singleFilters.add(singleFilter);
             }
+            
             table.delete(singleFilters,maxDeleteLines);
         }
         return "success";
@@ -191,7 +200,7 @@ public class SQLimpl {
 
         String whereStr = matcherSelect.group(3);
 
-        //将tableName和table.fieldMap放入
+        //将表名和表名.属性放入
         Map<String, Map<String, Field>> fieldMaps = new HashMap();
 
         for (String tableName : tableNames) {
@@ -209,7 +218,6 @@ public class SQLimpl {
             for (Map<String, String> filtMap : filtList) {
                 SingleFilter singleFilter = new SingleFilter(fieldMap.get(filtMap.get("fieldName"))
                         , filtMap.get("relationshipName"), filtMap.get("condition"));
-
                 singleFilters.add(singleFilter);
             }
             //projections为所有属性名
@@ -222,7 +230,7 @@ public class SQLimpl {
         }
 
 
-        //解析连接条件，并创建连接对象jion
+        //解析连接条件，并创建连接对象
         List<Map<String, String>> joinConditionMapList = StringUtil.parseWhere_join(whereStr, fieldMaps);
         List<JoinCondition> joinConditionList = new LinkedList<>();
         for (Map<String, String> joinMap : joinConditionMapList) {
@@ -230,9 +238,12 @@ public class SQLimpl {
             String tableName2 = joinMap.get("tableName2");
             String fieldName1 = joinMap.get("field1");
             String fieldName2 = joinMap.get("field2");
+            System.out.println(tableName1+fieldName1);
             Field field1 = fieldMaps.get(tableName1).get(fieldName1);
             Field field2 = fieldMaps.get(tableName2).get(fieldName2);
             String relationshipName = joinMap.get("relationshipName");
+            System.out.println(relationshipName);
+            //建立一个连接条件，参数为表一 表二，表一属性，表二属性，关系
             JoinCondition joinCondition = new JoinCondition(tableName1, tableName2, field1, field2, relationshipName);
 
             joinConditionList.add(joinCondition);
@@ -244,7 +255,7 @@ public class SQLimpl {
 
         List<Map<String, String>> LastDatas = Join.joinData(tableDatasMap, joinConditionList, projectionMap);
         
-        //处理为table.filed
+        //处理为 表名.属性
         List<String> PropList = SelectUtil.handleProp(projectionMap);;
             
         result.setCol(PropList.size());

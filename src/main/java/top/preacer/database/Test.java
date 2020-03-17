@@ -11,6 +11,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import top.preacer.pojo.SelectTable;
+
 public class Test {
     private static final Pattern SQL_INSERT = Pattern.compile("insert\\s+into\\s+(\\w+)(\\(((\\w+,?)+)\\))?\\s+\\w+\\((([^\\)]+,?)+)\\);?");
     private static final Pattern SQL_CREATE_TABLE = Pattern.compile("create\\stable\\s(\\w+)\\s?\\(((?:\\s?\\w+\\s\\w+,?)+)\\)\\s?;?");
@@ -129,9 +131,13 @@ public class Test {
                 SQLimpl.insert(matcherInsert);
             }
 
-//            while (matcherSelect.find()) {
-//            	SQLimpl.select(matcherSelect);
-//            }
+            while (matcherSelect.find()) {
+            	SelectTable temp=SQLimpl.Select(matcherSelect);
+            	if(temp!=null) {
+            		temp.toString();
+            	}
+            	
+            }
 
             while (matcherDeleteIndex.find()) {
                 if (user.getRole() != User.ADMIN) {
