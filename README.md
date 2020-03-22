@@ -8,3 +8,7 @@ spring + vue实现的一个B/S结构DBMS
 修复了SQL语句的一些问题，改善了存储，加入了用户管理，丰富了权限管理，简易实现数据备份。
 
 开放命令行和web两种方式的访问
+
+![预览1](https://andrmapper.cn/assets/images/dbms1.JPG)
+
+![预览2](https://andrmapper.cn/assets/images/dbms2.JPG)
